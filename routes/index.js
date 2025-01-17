@@ -33,6 +33,6 @@ router.put('/reviews/:id', auth, reviewController.updateReview);
 router.delete('/reviews/:id', auth, reviewController.deleteReview);
 
 // User routes
-router.get('/users', UserController.getAllUsers);
+router.get('/users', auth, UserController.getAllUsers);
 
 module.exports = router; 

@@ -8,7 +8,7 @@ const UserController = {
         attributes: ['id', 'username', 'email'], // Exclude sensitive data like password
         order: [['createdAt', 'DESC']]
       });
-      
+
       res.json({
         message: 'Users retrieved successfully',
         users

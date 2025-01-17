@@ -7,7 +7,7 @@ const auth = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
-    res.status(401).json({ message: 'Please authenticate' });
+    res.status(401).json({ message: 'Please Login to continue' });
   }
 };
 
