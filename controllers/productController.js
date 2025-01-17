@@ -49,34 +49,62 @@ exports.createProduct = [
   }
 ];
 
-exports.getAllProducts = [
-  checkRole(['user', 'vendor', 'admin']),
-  async (req, res) => {
-    try {
-      const whereCondition = req.user.is_admin
-        ? {}
-        : { status: 'published' };
+exports.getAllProducts = async (req, res) => {
+  try {
+    // Query parameters for filtering and pagination
+    const {
+      page = 1,
+      limit = 10,
+      category_id,
+      min_price,
+      max_price
+    } = req.query;
 
-      const products = await Product.findAll({
-        where: whereCondition,
-        include: [
-          {
-            model: Category,
-            as: 'category'
-          },
-          {
-            model: Review,
-            as: 'reviews',
-            required: false
-          }
-        ]
-      });
-      res.json(products);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    // Build where clause
+    const whereCondition = {
+      status: 'published' // Only show published products
+    };
+
+    // Optional filters
+    if (category_id) {
+      whereCondition.category_id = category_id;
     }
+
+    if (min_price || max_price) {
+      whereCondition.price = {};
+      if (min_price) whereCondition.price[Op.gte] = min_price;
+      if (max_price) whereCondition.price[Op.lte] = max_price;
+    }
+
+    const products = await Product.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name']
+        }
+      ],
+      limit: parseInt(limit),
+      offset: (page - 1) * limit,
+      order: [['created_at', 'DESC']],
+      attributes: {
+        exclude: ['user_id']
+      }
+    });
+
+    res.json({
+      total: products.count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(products.count / limit),
+      products: products.rows
+    });
+  } catch (error) {
+    console.error('Get all products error:', error);
+    res.status(500).json({ error: error.message });
   }
-];
+};
 
 exports.getProductById = [
   checkRole(['user', 'vendor', 'admin']),

@@ -20,7 +20,7 @@ router.delete('/categories/:id', auth, categoryController.deleteCategory);
 
 // Protected Product routes
 router.post('/products', auth, productController.createProduct);
-router.get('/products', auth, productController.getAllProducts);
+router.get('/products', productController.getAllProducts);
 router.get('/products/:id', auth, productController.getProductById);
 router.put('/products/:id', auth, productController.updateProduct);
 router.delete('/products/:id', productController.deleteProduct);
