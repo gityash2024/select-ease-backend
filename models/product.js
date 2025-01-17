@@ -1,45 +1,43 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Category = require('./category');
-const Review = require('./review');
+const { Model, DataTypes } = require('sequelize');
 
-const Product = sequelize.define('Product', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: false
-  },
-  rating: {
-    type: DataTypes.DECIMAL(3, 2),
-    defaultValue: 0
-  },
-  url: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  price: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
-  },
-  logo: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  category_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  }
-}, {
-  tableName: 'Products',
-  underscored: true
-});
+module.exports = (sequelize) => {
+  class Product extends Model {}
 
-module.exports = Product; 
+  Product.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      description: {
+        type: DataTypes.TEXT,
+      },
+      price: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      category_id: {
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'category',
+          key: 'id',
+        },
+      },
+    },
+    {
+      sequelize,
+      timestamps: true,
+      freezeTableName: true,
+      underscored: true,
+      modelName: 'product',
+    }
+  );
+
+  return Product;
+}; 

@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const routes = require('./routes');
+const authRoutes = require('./routes/auth');
+const db = require('./models');
 
 const app = express();
 
@@ -9,7 +11,20 @@ const app = express();
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Routes
+// Public auth routes (no auth required)
+app.use('/api/auth', authRoutes);
+
+// Auth middleware for protected routes
+const auth = require('./middleware/auth');
+app.use('/api', (req, res, next) => {
+  // Skip auth middleware for /api/auth routes
+  if (req.path.startsWith('/auth/')) {
+    return next();
+  }
+  return auth(req, res, next);
+});
+
+// Protected routes
 app.use('/api', routes);
 
 // Enhanced error handling with detailed logs
@@ -33,6 +48,13 @@ app.use((err, req, res, next) => {
 // Enable Sequelize logging
 const sequelize = require('./config/database');
 sequelize.options.logging = console.log;
+
+// Sync database
+db.sequelize.sync({ force: false }).then(() => {
+  console.log("Database synced");
+}).catch((err) => {
+  console.log("Failed to sync database:", err);
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

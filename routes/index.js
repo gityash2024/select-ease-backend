@@ -3,26 +3,36 @@ const router = express.Router();
 const categoryController = require('../controllers/categoryController');
 const productController = require('../controllers/productController');
 const reviewController = require('../controllers/reviewController');
+const registrationsController = require('../controllers/registrationsController');
+const auth = require('../middleware/auth');
+const UserController = require('../controllers/userController');
 
-// Category routes
-router.post('/categories', categoryController.createCategory);
-router.get('/categories', categoryController.getAllCategories);
-router.get('/categories/:id', categoryController.getCategoryById);
-router.put('/categories/:id', categoryController.updateCategory);
-router.delete('/categories/:id', categoryController.deleteCategory);
+// Public authentication routes
+router.post('/signup', registrationsController.signup);
+router.post('/login', registrationsController.login);
 
-// Product routes
-router.post('/products', productController.createProduct);
-router.get('/products', productController.getAllProducts);
-router.get('/products/:id', productController.getProductById);
-router.put('/products/:id', productController.updateProduct);
-router.delete('/products/:id', productController.deleteProduct);
+// Protected Category routes
+router.post('/categories', auth, categoryController.createCategory);
+router.get('/categories', auth, categoryController.getAllCategories);
+router.get('/categories/:id', auth, categoryController.getCategoryById);
+router.put('/categories/:id', auth, categoryController.updateCategory);
+router.delete('/categories/:id', auth, categoryController.deleteCategory);
 
-// Review routes
-router.post('/reviews', reviewController.createReview);
-router.get('/reviews', reviewController.getAllReviews);
-router.get('/reviews/:id', reviewController.getReviewById);
-router.put('/reviews/:id', reviewController.updateReview);
-router.delete('/reviews/:id', reviewController.deleteReview);
+// Protected Product routes
+router.post('/products', auth, productController.createProduct);
+router.get('/products', auth, productController.getAllProducts);
+router.get('/products/:id', auth, productController.getProductById);
+router.put('/products/:id', auth, productController.updateProduct);
+router.delete('/products/:id', auth, productController.deleteProduct);
+
+// Protected Review routes
+router.post('/reviews', auth, reviewController.createReview);
+router.get('/reviews', auth, reviewController.getAllReviews);
+router.get('/reviews/:id', auth, reviewController.getReviewById);
+router.put('/reviews/:id', auth, reviewController.updateReview);
+router.delete('/reviews/:id', auth, reviewController.deleteReview);
+
+// User routes
+router.get('/users', UserController.getAllUsers);
 
 module.exports = router; 

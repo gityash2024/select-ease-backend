@@ -55,11 +55,20 @@ exports.getProductById = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Check if the user is the owner of the product or an admin
+    if (product.vendor_id !== req.user.id && !req.user.is_admin) {
+      return res.status(403).json({ error: 'You can only update your own products' });
+    }
+
     await product.update(req.body);
     res.json(product);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
 
