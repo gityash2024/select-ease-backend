@@ -37,8 +37,31 @@ module.exports = (sequelize) => {
           len: [8],
         },
       },
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      is_vendor: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      is_admin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
+      sequelize,
+      modelName: 'user',
+      timestamps: true,
+      freezeTableName: true,
+      underscored: true,
       hooks: {
         beforeCreate: async (newUserData) => {
           newUserData.password = await bcrypt.hash(newUserData.password, 10);
@@ -51,13 +74,8 @@ module.exports = (sequelize) => {
           return updatedUserData;
         },
       },
-      sequelize,
-      timestamps: true,
-      freezeTableName: true,
-      underscored: true,
-      modelName: 'user',
     }
   );
 
   return User;
-}; 
+};

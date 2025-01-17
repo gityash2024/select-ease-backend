@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('users', {  // Ensure this is PLURAL 'users'
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -33,19 +33,19 @@ module.exports = {
         allowNull: false,
         defaultValue: false
       },
-      firstName: {
+      first_name: {
         type: Sequelize.STRING,
         allowNull: true
       },
-      lastName: {
+      last_name: {
         type: Sequelize.STRING,
         allowNull: true
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
@@ -53,6 +53,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('users');
   }
 };

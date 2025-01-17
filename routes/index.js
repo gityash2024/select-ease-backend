@@ -23,7 +23,7 @@ router.post('/products', auth, productController.createProduct);
 router.get('/products', auth, productController.getAllProducts);
 router.get('/products/:id', auth, productController.getProductById);
 router.put('/products/:id', auth, productController.updateProduct);
-router.delete('/products/:id', auth, productController.deleteProduct);
+router.delete('/products/:id', productController.deleteProduct);
 
 // Protected Review routes
 router.post('/reviews', auth, reviewController.createReview);
