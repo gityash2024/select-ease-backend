@@ -119,7 +119,6 @@ exports.updateProduct = [
         return res.status(404).json({ error: 'Product not found' });
       }
 
-      // Vendors can only update their own products
       // Admins can update any product
       if (!req.user.is_admin) {
         return res.status(403).json({ error: 'Only Admin can publish products' });
