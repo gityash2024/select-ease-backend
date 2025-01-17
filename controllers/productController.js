@@ -121,8 +121,8 @@ exports.updateProduct = [
 
       // Vendors can only update their own products
       // Admins can update any product
-      if (product.vendor_id !== req.user.id && !req.user.is_admin) {
-        return res.status(403).json({ error: 'You can only update your own products' });
+      if (!req.user.is_admin) {
+        return res.status(403).json({ error: 'Only Admin can publish products' });
       }
 
       // If admin is updating, they can change status
