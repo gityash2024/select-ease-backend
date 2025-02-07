@@ -5,7 +5,7 @@ const UserController = {
   getAllUsers: async (req, res) => {
     try {
       const users = await User.findAll({
-        attributes: ['id', 'username', 'email'], // Exclude sensitive data like password
+        attributes: ['id', 'username', 'email', 'is_admin', 'is_vendor', 'createdAt'], // Exclude sensitive data like password
         order: [['createdAt', 'DESC']]
       });
 
