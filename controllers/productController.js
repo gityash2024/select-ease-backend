@@ -174,20 +174,9 @@ exports.updateProduct = [
       if (!product) {
         return res.status(404).json({ error: 'Product not found' });
       }
-
-      // Admins can update any product
-      if (!req.user.is_admin) {
-        return res.status(403).json({ error: 'Only Admin can publish products' });
-      }
-
-      // If admin is updating, they can change status
-      if (req.user.is_admin) {
-        req.body.status = req.body.status || product.status;
-      } else {
-        // Vendor updates reset status to pending
-        req.body.status = 'pending';
-      }
-
+      // vendor can update any products but not status
+      req.body.status = 'pending';
+  
       await product.update(req.body);
       res.json(product);
     } catch (error) {
