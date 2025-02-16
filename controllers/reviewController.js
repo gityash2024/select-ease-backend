@@ -1,11 +1,23 @@
-const { Review, Product } = require('../models');
+const { Review, Product, User } = require('../models');
 
 exports.createReview = async (req, res) => {
   try {
-    const review = await Review.create(req.body);
-    res.status(201).json(review);
+    const product = await Product.findByPk(req.body.productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const reviewData = {
+      product_id: req.body.productId,
+      rating: req.body.rating,
+      description: req.body.description,
+      user_id: req.user.dataValues.id
+    };
+    
+    const review = await Review.create(reviewData);
+    return res.status(201).json(review);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -16,6 +28,11 @@ exports.getAllReviews = async (req, res) => {
         {
           model: Product,
           as: 'product',
+          required: false
+        },
+        {
+          model: User,
+          as: 'user',
           required: false
         }
       ]
@@ -33,6 +50,10 @@ exports.getReviewById = async (req, res) => {
         {
           model: Product,
           as: 'product'
+        },
+        {
+          model: User,
+          as: 'user'
         }
       ]
     });
@@ -49,6 +70,31 @@ exports.updateReview = async (req, res) => {
     if (!review) return res.status(404).json({ message: 'Review not found' });
     await review.update(req.body);
     res.json(review);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getReviewsByUser = async (req, res) => {
+  try {
+    const userId = req.params.userId || req.user.dataValues.id;
+    
+    const reviews = await Review.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: Product,
+          as: 'product',
+          required: false
+        }
+      ]
+    });
+
+    if (!reviews.length) {
+      return res.status(200).json({ message: 'No reviews found for this user', reviews: [] });
+    }
+
+    res.json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

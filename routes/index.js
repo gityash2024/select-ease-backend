@@ -31,6 +31,8 @@ router.get('/reviews', auth, reviewController.getAllReviews);
 router.get('/reviews/:id', auth, reviewController.getReviewById);
 router.put('/reviews/:id', auth, reviewController.updateReview);
 router.delete('/reviews/:id', auth, reviewController.deleteReview);
+router.get('/user_reviews/:userId?',auth, reviewController.getReviewsByUser);
+
 
 // User routes
 router.get('/users', auth, UserController.getAllUsers);
