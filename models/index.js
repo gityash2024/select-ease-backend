@@ -6,12 +6,14 @@ const defineProduct = require('./product');
 const defineCategory = require('./category');
 const defineReview = require('./review');
 const defineUser = require('./user');
+const defineBlog = require('./blog');
 
 // Initialize models
 const Product = defineProduct(sequelize);
 const Category = defineCategory(sequelize);
 const Review = defineReview(sequelize);
 const User = defineUser(sequelize);
+const Blog = defineBlog(sequelize);
 
 // Define associations
 Product.belongsTo(Category, {
@@ -56,11 +58,23 @@ User.hasMany(Review, {
   onDelete: 'CASCADE'
 });
 
+User.hasMany(Blog, {
+  foreignKey: 'user_id',
+  as: 'blogs',
+  onDelete: 'CASCADE'
+});
+
+Blog.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
+});
+
 module.exports = {
   Product,
   Category,
   Review,
   User,
+  Blog,
   sequelize,
   Sequelize
 };

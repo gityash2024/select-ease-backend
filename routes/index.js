@@ -6,6 +6,8 @@ const reviewController = require('../controllers/reviewController');
 const registrationsController = require('../controllers/registrationsController');
 const auth = require('../middleware/auth');
 const UserController = require('../controllers/userController');
+const blogController = require('../controllers/blogController');
+
 
 // Public authentication routes
 router.post('/signup', registrationsController.signup);
@@ -34,6 +36,13 @@ router.get('/reviews/:id', auth, reviewController.getReviewById);
 router.put('/reviews/:id', auth, reviewController.updateReview);
 router.delete('/reviews/:id', auth, reviewController.deleteReview);
 router.get('/user_reviews/:userId?',auth, reviewController.getReviewsByUser);
+
+// Protected Blog routes
+router.get('/blogs', blogController.getAllBlogs);
+router.get('/blogs/:id', blogController.getBlogDetails);
+router.post('/blogs', auth, blogController.createBlog);
+router.put('/blogs/:id', auth, blogController.updateBlog);
+router.delete('/blogs/:id', auth, blogController.deleteBlog);
 
 
 // User routes
