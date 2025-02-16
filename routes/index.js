@@ -25,6 +25,7 @@ router.get('/products', productController.getAllProducts);
 router.get('/products/:id', auth, productController.getProductById);
 router.put('/products/:id', auth, productController.updateProduct);
 router.delete('/products/:id', productController.deleteProduct);
+router.put('/admin/products/:id', auth, productController.adminUpdateProduct);
 
 // Protected Review routes
 router.post('/reviews', auth, reviewController.createReview);
