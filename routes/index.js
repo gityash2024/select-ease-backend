@@ -19,6 +19,7 @@ router.put('/categories/:id', auth, categoryController.updateCategory);
 router.delete('/categories/:id', auth, categoryController.deleteCategory);
 
 // Protected Product routes
+router.get('/admin/products', auth, productController.adminGetAllProducts);  // Move this BEFORE other product routes
 router.post('/products', auth, productController.createProduct);
 router.get('/products', productController.getAllProducts);
 router.get('/products/:id', auth, productController.getProductById);

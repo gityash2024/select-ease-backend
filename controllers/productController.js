@@ -106,6 +106,34 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+exports.adminGetAllProducts = [
+  checkRole(['admin']),
+  async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const products = await Product.findAndCountAll({
+        limit: limit,
+        offset: offset,
+        order: [['created_at', 'DESC']]
+      });
+
+      res.json({
+        totalItems: products.count,
+        currentPage: page,
+        pageSize: limit,
+        totalPages: Math.ceil(products.count / limit),
+        hasMore: page * limit < products.count,
+        products: products.rows
+      });
+    } catch (error) {
+      console.error('Admin get all products error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+];
+
 exports.getProductById = [
   checkRole(['user', 'vendor', 'admin']),
   async (req, res) => {
