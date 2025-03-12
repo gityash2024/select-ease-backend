@@ -22,6 +22,21 @@ module.exports = (sequelize) => {
       comment: {
         type: DataTypes.TEXT,
       },
+      // Add title field for reviews
+      title: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      // For backward compatibility
+      description: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          return this.comment;
+        },
+        set(value) {
+          this.setDataValue('comment', value);
+        }
+      },
       user_id: {
         type: DataTypes.INTEGER,
         references: {

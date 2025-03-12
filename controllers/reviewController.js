@@ -10,13 +10,33 @@ exports.createReview = async (req, res) => {
     const reviewData = {
       product_id: req.body.productId,
       rating: req.body.rating,
-      description: req.body.description,
-      user_id: req.user.dataValues.id
+      // Support both field names for flexibility
+      description: req.body.description || req.body.comment,
+      title: req.body.title || '',
+      user_id: req.user.id // Access user ID directly 
     };
     
     const review = await Review.create(reviewData);
-    return res.status(201).json(review);
+    
+    // Return newly created review with user info
+    const reviewWithUser = await Review.findByPk(review.id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'email']
+        },
+        {
+          model: Product,
+          as: 'product',
+          attributes: ['id', 'name']
+        }
+      ]
+    });
+    
+    return res.status(201).json(reviewWithUser);
   } catch (error) {
+    console.error('Create review error:', error);
     return res.status(500).json({ error: error.message });
   }
 };

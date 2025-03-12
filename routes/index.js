@@ -15,27 +15,27 @@ router.post('/login', registrationsController.login);
 
 // Protected Category routes
 router.post('/categories', auth, categoryController.createCategory);
-router.get('/categories', auth, categoryController.getAllCategories);
-router.get('/categories/:id', auth, categoryController.getCategoryById);
+router.get('/categories', categoryController.getAllCategories);
+router.get('/categories/:id',categoryController.getCategoryById);
 router.put('/categories/:id', auth, categoryController.updateCategory);
 router.delete('/categories/:id', auth, categoryController.deleteCategory);
 
-// Protected Product routes
-router.get('/admin/products', auth, productController.adminGetAllProducts);  // Move this BEFORE other product routes
-router.post('/products', auth, productController.createProduct);
-router.get('/products', productController.getAllProducts);
-router.get('/products/:id', auth, productController.getProductById);
-router.put('/products/:id', auth, productController.updateProduct);
-router.delete('/products/:id', productController.deleteProduct);
-router.put('/admin/products/:id', auth, productController.adminUpdateProduct);
+// Product routes
+router.get('/admin/products', productController.adminGetAllProducts);  // Admin-only route
+router.post('/products', auth, productController.createProduct);             // Protected - requires auth
+router.get('/products', productController.getAllProducts);                   // Public
+router.get('/products/:id', productController.getProductById);               // Public
+router.put('/products/:id', auth, productController.updateProduct);          // Protected - requires auth
+router.delete('/products/:id', auth, productController.deleteProduct);       // Protected - requires auth
+router.put('/admin/products/:id', auth, productController.adminUpdateProduct); // Admin-only route
 
 // Protected Review routes
 router.post('/reviews', auth, reviewController.createReview);
-router.get('/reviews', auth, reviewController.getAllReviews);
-router.get('/reviews/:id', auth, reviewController.getReviewById);
+router.get('/reviews',  reviewController.getAllReviews);
+router.get('/reviews/:id',  reviewController.getReviewById);
 router.put('/reviews/:id', auth, reviewController.updateReview);
 router.delete('/reviews/:id', auth, reviewController.deleteReview);
-router.get('/user_reviews/:userId?',auth, reviewController.getReviewsByUser);
+router.get('/user_reviews/:userId?', reviewController.getReviewsByUser);
 
 // Protected Blog routes
 router.get('/blogs', blogController.getAllBlogs);

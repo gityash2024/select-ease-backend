@@ -13,29 +13,15 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-// Detailed HTTP request logging
 app.use(morgan('dev'));
 app.use(express.json());
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running' });
 });
-// Public auth routes (no auth required)
+
 app.use('/api/auth', authRoutes);
-
-// Auth middleware for protected routes
-const auth = require('./middleware/auth');
-app.use('/api', (req, res, next) => {
-  // Skip auth middleware for /api/auth routes
-  if (req.path.startsWith('/auth/')) {
-    return next();
-  }
-  return auth(req, res, next);
-});
-
-// Protected routes
 app.use('/api', routes);
 
-// Enhanced error handling with detailed logs
 app.use((err, req, res, next) => {
   console.error('Error details:', {
     message: err.message,
@@ -53,11 +39,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Enable Sequelize logging
 const sequelize = require('./config/database');
 sequelize.options.logging = console.log;
 
-// Sync database
 db.sequelize.sync({ force: false }).then(() => {
   console.log("Database synced");
 }).catch((err) => {
@@ -67,5 +51,5 @@ db.sequelize.sync({ force: false }).then(() => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server is live on port ${PORT}`); // Or any message you prefer
-});; 
+  console.log(`Server is live on port ${PORT}`);
+});
