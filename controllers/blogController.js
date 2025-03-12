@@ -26,13 +26,36 @@ const checkRole = (requiredRoles) => {
   };
 };
 
+// Helper to normalize blog data for compatibility
+const normalizeBlogData = (blog) => {
+  const normalizedBlog = { ...blog };
+  
+  // Ensure title and heading are synchronized
+  if (normalizedBlog.title && !normalizedBlog.heading) {
+    normalizedBlog.heading = normalizedBlog.title;
+  } else if (normalizedBlog.heading && !normalizedBlog.title) {
+    normalizedBlog.title = normalizedBlog.heading;
+  }
+  
+  // Ensure content and text are synchronized
+  if (normalizedBlog.content && !normalizedBlog.text) {
+    normalizedBlog.text = normalizedBlog.content;
+  } else if (normalizedBlog.text && !normalizedBlog.content) {
+    normalizedBlog.content = normalizedBlog.text;
+  }
+  
+  return normalizedBlog;
+};
+
 // Create Blog -- Admin only
 exports.createBlog = [
   checkRole(['admin']),
   async (req, res) => {
   try {
+    const blogData = normalizeBlogData(req.body);
+    
     const blog = await Blog.create({
-      ...req.body,
+      ...blogData,
       user_id: req.user.dataValues.id,
     });
 
@@ -53,12 +76,23 @@ exports.createBlog = [
 exports.getAllBlogs = async (req, res) => {
   try {
     const blogs = await Blog.findAll({
-      include: [{ model: User, as: 'user' }],
+      include: [{ 
+        model: User, 
+        as: 'user', 
+        attributes: ['id'] // Remove 'name' attribute, only include 'id'
+      }],
+      order: [['createdAt', 'DESC']],
+    });
+
+    // Normalize blog data for frontend
+    const normalizedBlogs = blogs.map(blog => {
+      const plainBlog = blog.get({ plain: true });
+      return normalizeBlogData(plainBlog);
     });
 
     res.status(200).json({
       success: true,
-      blogs,
+      blogs: normalizedBlogs,
     });
   } catch (error) {
     res.status(500).json({
@@ -72,7 +106,11 @@ exports.getAllBlogs = async (req, res) => {
 exports.getBlogDetails = async (req, res) => {
   try {
     const blog = await Blog.findByPk(req.params.id, {
-      include: [{ model: User, as: 'user'}],
+      include: [{ 
+        model: User, 
+        as: 'user', 
+        attributes: ['id'] // Remove 'name' attribute, only include 'id'
+      }],
     });
 
     if (!blog) {
@@ -82,9 +120,13 @@ exports.getBlogDetails = async (req, res) => {
       });
     }
 
+    // Normalize blog data for frontend
+    const plainBlog = blog.get({ plain: true });
+    const normalizedBlog = normalizeBlogData(plainBlog);
+
     res.status(200).json({
       success: true,
-      blog,
+      blog: normalizedBlog,
     });
   } catch (error) {
     res.status(500).json({
@@ -108,7 +150,10 @@ exports.updateBlog = [
       });
     }
 
-    await blog.update(req.body);
+    // Normalize the update data to ensure old and new field compatibility
+    const updateData = normalizeBlogData(req.body);
+    
+    await blog.update(updateData);
 
     res.status(200).json({
       success: true,
@@ -150,4 +195,4 @@ exports.deleteBlog = [
     });
   }
 }
-]; 
+];
