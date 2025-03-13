@@ -1,7 +1,20 @@
+// models/review.js
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  class Review extends Model {}
+  class Review extends Model {
+    static associate(models) {
+      Review.belongsTo(models.Product, {
+        foreignKey: 'product_id',
+        as: 'product'
+      });
+      
+      Review.belongsTo(models.User, {
+        foreignKey: 'user_id',
+        as: 'user'
+      });
+    }
+  }
 
   Review.init(
     {
@@ -11,6 +24,14 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true,
       },
+      title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      comment: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
       rating: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -19,23 +40,17 @@ module.exports = (sequelize) => {
           max: 5,
         },
       },
-      comment: {
+      pros: {
         type: DataTypes.TEXT,
-      },
-      // Add title field for reviews
-      title: {
-        type: DataTypes.STRING,
         allowNull: true,
       },
-      // For backward compatibility
-      description: {
-        type: DataTypes.VIRTUAL,
-        get() {
-          return this.comment;
-        },
-        set(value) {
-          this.setDataValue('comment', value);
-        }
+      cons: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      recommendation: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
       },
       user_id: {
         type: DataTypes.INTEGER,
@@ -62,4 +77,4 @@ module.exports = (sequelize) => {
   );
 
   return Review;
-}; 
+};
