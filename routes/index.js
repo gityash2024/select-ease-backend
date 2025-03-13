@@ -54,7 +54,8 @@ router.get('/blogs/:id', blogController.getBlogDetails);
 router.post('/blogs', auth, blogController.createBlog);
 router.put('/blogs/:id', auth, blogController.updateBlog);
 router.delete('/blogs/:id', auth, blogController.deleteBlog);
-
+// Add this with the other User routes
+router.delete('/users/:id', auth, UserController.deleteUser);
 // User routes
 router.get('/users', auth, UserController.getAllUsers);
 

@@ -299,16 +299,16 @@ exports.adminUpdateProduct = [
 
 exports.deleteProduct = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
+    // if (!req.user) {
+    //   return res.status(401).json({ error: 'Authentication required' });
+    // }
 
     const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-
+console.log(req)
     if (product.user_id !== req.user.id && !req.user.is_admin) {
       return res.status(403).json({ error: 'You can only delete your own products' });
     }
