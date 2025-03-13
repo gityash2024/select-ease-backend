@@ -31,13 +31,28 @@ exports.createProduct = [
   checkRole(['vendor', 'admin']),
   async (req, res) => {
     try {
+      // Get the authenticated user's ID from req.user
+      const userId = req.user.id;
+      
+      // Verify that the user exists in the database
+      const userExists = await User.findByPk(userId);
+      if (!userExists) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
+      
       const productData = {
         name: req.body.name,
         description: req.body.description,
         price: req.body.price,
         category_id: req.body.category_id,
         status: req.user.is_admin ? 'published' : 'pending',
-        user_id: req.user.id
+        user_id: userId,
+        // Add these fields
+        url: req.body.url,
+        logo: req.body.logo,
+        image_url: req.body.image_url,
+        features: req.body.features,
+        in_stock: req.body.in_stock !== undefined ? req.body.in_stock : true
       };
 
       const product = await Product.create(productData);
@@ -48,7 +63,6 @@ exports.createProduct = [
     }
   }
 ];
-
 exports.getAllProducts = async (req, res) => {
   try {
     const {
@@ -93,7 +107,11 @@ exports.getAllProducts = async (req, res) => {
 
     const products = await Product.findAndCountAll({
       where: whereCondition,
-      attributes: ['id', 'name', 'description', 'price', 'status', 'created_at', 'updated_at', 'category_id', 'user_id'],
+      attributes: [
+        'id', 'name', 'description', 'price', 'status', 
+        'created_at', 'updated_at', 'category_id', 'user_id',
+        'url', 'logo', 'image_url', 'features', 'in_stock'  // Added these fields
+      ],
       include: [
         {
           model: Category,
@@ -193,7 +211,11 @@ exports.getProductById = async (req, res) => {
 
     const product = await Product.findOne({
       where: whereCondition,
-      attributes: ['id', 'name', 'description', 'price', 'status', 'created_at', 'updated_at', 'category_id', 'user_id'],
+      attributes: [
+        'id', 'name', 'description', 'price', 'status', 
+        'created_at', 'updated_at', 'category_id', 'user_id',
+        'url', 'logo', 'image_url', 'features', 'in_stock'  // Added these fields
+      ],
       include: [
         {
           model: Category,
@@ -299,17 +321,15 @@ exports.adminUpdateProduct = [
 
 exports.deleteProduct = async (req, res) => {
   try {
-    // if (!req.user) {
-    //   return res.status(401).json({ error: 'Authentication required' });
-    // }
-
     const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-console.log(req)
-    if (product.user_id !== req.user.id && !req.user.is_admin) {
+
+    // Remove the console.log and fix the authorization check
+    // Only check user_id if the user is not an admin
+    if (!req.user.is_admin && product.user_id !== req.user.id) {
       return res.status(403).json({ error: 'You can only delete your own products' });
     }
 
