@@ -40,14 +40,16 @@ exports.createProduct = [
         return res.status(400).json({ error: 'Invalid user ID' });
       }
       
+      // Use status from payload if provided, otherwise default based on role
+      const status = req.body.status || (req.user.is_admin ? 'published' : 'pending');
+      
       const productData = {
         name: req.body.name,
         description: req.body.description,
         price: req.body.price,
         category_id: req.body.category_id,
-        status: req.user.is_admin ? 'published' : 'pending',
+        status: status,
         user_id: userId,
-        // Add these fields
         url: req.body.url,
         logo: req.body.logo,
         image_url: req.body.image_url,
@@ -63,6 +65,7 @@ exports.createProduct = [
     }
   }
 ];
+
 exports.getAllProducts = async (req, res) => {
   try {
     const {
@@ -75,23 +78,48 @@ exports.getAllProducts = async (req, res) => {
       search
     } = req.query;
 
-    const whereCondition = {
-      status: 'published'
-    };
+    let whereCondition = {};
 
+    // If user is a vendor, show their own products (all statuses) and other published products
+    if (req.user && req.user.is_vendor && !req.user.is_admin) {
+      whereCondition = {
+        [Op.or]: [
+          { user_id: req.user.id }, // Their own products
+          { status: 'published' }   // Published products from others
+        ]
+      };
+    } 
+    // If user is an admin, they can see all products
+    else if (req.user && req.user.is_admin) {
+      // No specific condition needed, they see all
+    } 
+    // If not logged in or regular user, only show published products
+    else {
+      whereCondition.status = 'published';
+    }
+
+    // Apply additional filters
     if (search) {
-      whereCondition.name = {
-        [Op.iLike]: `%${search}%`
+      whereCondition = {
+        ...whereCondition,
+        name: {
+          [Op.iLike]: `%${search}%`
+        }
       };
     }
 
+    // Allow status filter to override the default conditions
     if (req.user && status && ['published', 'pending', 'denied'].includes(status)) {
       if (req.user.is_vendor && !req.user.is_admin) {
-        whereCondition.user_id = req.user.id;
-        whereCondition.status = status;
+        // For vendors with status filter, only show their own products with that status
+        whereCondition = {
+          user_id: req.user.id,
+          status: status
+        };
       } 
       else if (req.user.is_admin) {
-        whereCondition.status = status;
+        // For admins with status filter, show all products with that status
+        whereCondition = { status };
       }
     }
 
@@ -110,7 +138,7 @@ exports.getAllProducts = async (req, res) => {
       attributes: [
         'id', 'name', 'description', 'price', 'status', 
         'created_at', 'updated_at', 'category_id', 'user_id',
-        'url', 'logo', 'image_url', 'features', 'in_stock'  // Added these fields
+        'url', 'logo', 'image_url', 'features', 'in_stock'
       ],
       include: [
         {
@@ -139,11 +167,18 @@ exports.getAllProducts = async (req, res) => {
     const productsWithRating = products.rows.map(product => {
       const productObj = product.get({ plain: true });
       
+      // Calculate average rating
       if (productObj.reviews && productObj.reviews.length > 0) {
         const totalRating = productObj.reviews.reduce((sum, review) => sum + review.rating, 0);
         productObj.rating = (totalRating / productObj.reviews.length).toFixed(1);
       } else {
         productObj.rating = 0;
+      }
+
+      // Add flag for own products for vendor display styling
+      if (req.user && req.user.is_vendor && !req.user.is_admin) {
+        productObj.isOwnProduct = productObj.user_id === req.user.id;
+        productObj.isPending = productObj.status !== 'published';
       }
 
       return productObj;
@@ -214,7 +249,7 @@ exports.getProductById = async (req, res) => {
       attributes: [
         'id', 'name', 'description', 'price', 'status', 
         'created_at', 'updated_at', 'category_id', 'user_id',
-        'url', 'logo', 'image_url', 'features', 'in_stock'  // Added these fields
+        'url', 'logo', 'image_url', 'features', 'in_stock'
       ],
       include: [
         {
@@ -327,8 +362,6 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Remove the console.log and fix the authorization check
-    // Only check user_id if the user is not an admin
     if (!req.user.is_admin && product.user_id !== req.user.id) {
       return res.status(403).json({ error: 'You can only delete your own products' });
     }
@@ -387,17 +420,44 @@ exports.compareProducts = async (req, res) => {
         id: productIds,
         status: 'published'
       },
-      attributes: ['id', 'name', 'description', 'price', 'status', 'created_at', 'updated_at', 'category_id', 'user_id'],
+      attributes: [
+        'id', 
+        'name', 
+        'description', 
+        'price', 
+        'status', 
+        'created_at', 
+        'updated_at', 
+        'category_id', 
+        'user_id',
+        'url', 
+        'logo', 
+        'image_url', 
+        'features', 
+        'in_stock'
+      ],
       include: [
         {
           model: Category,
-          as: 'category'
+          as: 'category',
+          attributes: ['id', 'name']
         },
         {
           model: Review,
           as: 'reviews',
-          attributes: ['id', 'rating'],
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'username', 'firstName', 'lastName']
+            }
+          ],
           required: false
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'email']
         }
       ]
     });
@@ -408,12 +468,29 @@ exports.compareProducts = async (req, res) => {
     
     const productsWithRating = products.map(product => {
       const productObj = product.get({ plain: true });
+      
+      // Calculate average rating
       if (productObj.reviews && productObj.reviews.length > 0) {
         const totalRating = productObj.reviews.reduce((sum, review) => sum + review.rating, 0);
-        productObj.averageRating = (totalRating / productObj.reviews.length).toFixed(1);
+        productObj.averageRating = parseFloat((totalRating / productObj.reviews.length).toFixed(1));
+        productObj.rating = productObj.averageRating; // For backward compatibility
       } else {
         productObj.averageRating = 0;
+        productObj.rating = 0;
       }
+      
+      // Count number of reviews
+      productObj.reviewCount = productObj.reviews ? productObj.reviews.length : 0;
+      
+      // Parse features if it's stored as a JSON string
+      if (productObj.features && typeof productObj.features === 'string') {
+        try {
+          productObj.features = JSON.parse(productObj.features);
+        } catch (e) {
+          console.error('Error parsing features JSON:', e);
+        }
+      }
+      
       return productObj;
     });
     
