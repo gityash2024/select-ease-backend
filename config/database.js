@@ -27,8 +27,9 @@
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
-// Use the IP address directly instead of hostname
-const connectionString = 'postgresql://select_ease_db_user:gDqIz80dzO7AW96bjJRj08S08mRw1ttq@35.227.164.209:5432/select_ease_db';
+// URL-encode the password to handle special characters
+const password = encodeURIComponent('gDqIz80dzO7AW96bjJRj08S08mRw1ttq');
+const connectionString = `postgresql://select_ease_db_user:${password}@35.227.164.209:5432/select_ease_db`;
 
 const sequelize = new Sequelize(connectionString, {
   dialect: 'postgres',
@@ -52,4 +53,4 @@ sequelize.authenticate()
   .then(() => console.log('Database connection established successfully'))
   .catch(err => console.error('Unable to connect to the database:', err));
 
-module.exports = sequelize;
+module.exports = sequelize; 
