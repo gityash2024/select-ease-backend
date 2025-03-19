@@ -29,7 +29,7 @@ const { Sequelize } = require('sequelize');
 
 // URL-encode the password to handle special characters
 const password = encodeURIComponent('gDqIz80dzO7AW96bjJRj08S08mRw1ttq');
-const connectionString = `postgresql://select_ease_db_user:gDqTr8O4o07AW96bjJRjQ8SQ8w8w1ttq@dpg-cva3lqij1k6c739ef990-a.oregon-postgres.render.com/select_ease_dbaa`;
+const connectionString = `postgresql://select_ease_db_user:gDqTr8O4o07AW96bjJRjQ8SQ8w8w1ttq@dpg-cva3lqij1k6c739ef990-a.oregon-postgres.render.com/select_ease_db`;
 
 const sequelize = new Sequelize(connectionString, {
   dialect: 'postgres',
